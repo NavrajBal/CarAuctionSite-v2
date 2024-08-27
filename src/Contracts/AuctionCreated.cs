@@ -2,7 +2,6 @@ using System;
 
 namespace Contracts;
 
-// Message contract for when an auction is created
 public class AuctionCreated
 {
     public Guid Id { get; set; }
