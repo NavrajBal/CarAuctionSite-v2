@@ -13,22 +13,17 @@ public class SearchController : ControllerBase
     [HttpGet]
     public async Task<ActionResult<List<Item>>> SearchItems([FromQuery] SearchParams searchParams)
     {
-        // Create MongoDB paged search query
         var query = DB.PagedSearch<Item, Item>();
 
-        // Default sort by make
-        query.Sort(x => x.Ascending(a => a.Make));
-
-        // Apply text search if provided
         if (!string.IsNullOrEmpty(searchParams.SearchTerm))
         {
             query.Match(Search.Full, searchParams.SearchTerm).SortByTextScore();
         }
 
-        // Apply sorting based on orderBy parameter
         query = searchParams.OrderBy switch
         {
-            "make" => query.Sort(x => x.Ascending(x => x.Make)),
+            "make" => query.Sort(x => x.Ascending(x => x.Make))
+                .Sort(x => x.Ascending(a => a.Model)),
             "new" => query.Sort(x => x.Descending(x => x.CreatedAt)),
             _ => query.Sort(x => x.Ascending(x => x.AuctionEnd))
         };

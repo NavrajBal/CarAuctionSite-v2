@@ -21,6 +21,12 @@ builder.Services.AddMassTransit(x =>
 
     x.UsingRabbitMq((context, cfg) =>
     {
+        cfg.Host(builder.Configuration["RabbitMq:Host"], "/", h =>
+        {
+            h.Username(builder.Configuration.GetValue("RabbitMQ:Username", "guest")!);
+            h.Password(builder.Configuration.GetValue("RabbitMQ:Password", "guest")!);
+        });
+
         cfg.ReceiveEndpoint("search-auction-created", e =>
         {
             e.UseMessageRetry(r => r.Interval(5,5));
@@ -40,14 +46,12 @@ app.UseAuthorization();
 
 app.MapControllers();
 
-try
+app.Lifetime.ApplicationStarted.Register(async () =>
 {
-    await DbInitializer.InitDb(app);
-}
-catch (Exception e)
-{
-    Console.WriteLine(e);
-}
+    await Policy.Handle<TimeoutException>()
+        .WaitAndRetryAsync(5, retryAttempt => TimeSpan.FromSeconds(10))
+        .ExecuteAndCaptureAsync(async () => await DbInitializer.InitDb(app));
+});
 
 app.Run();
 
@@ -56,3 +60,5 @@ static IAsyncPolicy<HttpResponseMessage> GetPolicy()
         .HandleTransientHttpError()
         .OrResult(msg => msg.StatusCode == HttpStatusCode.NotFound)
         .WaitAndRetryForeverAsync(_ => TimeSpan.FromSeconds(3));
+
+public partial class Program {}
