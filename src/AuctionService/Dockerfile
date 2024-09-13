@@ -4,7 +4,7 @@ EXPOSE 80
 
 # copy all .csproj files and restore as distinct layers.  Use the same COPY
 # for every dockerfile in the project to take advantage of Docker caching
-COPY Carsties.sln Carsties.sln
+COPY auction.sln auction.sln
 COPY src/AuctionService/AuctionService.csproj src/AuctionService/AuctionService.csproj
 COPY src/SearchService/SearchService.csproj src/SearchService/SearchService.csproj
 COPY src/GatewayService/GatewayService.csproj src/GatewayService/GatewayService.csproj
@@ -17,7 +17,7 @@ COPY tests/AuctionService.IntegrationTests/AuctionService.IntegrationTests.cspro
 COPY tests/SearchService.IntegrationTests/SearchService.IntegrationTests.csproj tests/SearchService.IntegrationTests/SearchService.IntegrationTests.csproj
 
 # Restore package deps
-RUN dotnet restore Carsties.sln
+RUN dotnet restore auction.sln
 
 # Copy the app folders over
 COPY src/AuctionService src/AuctionService
